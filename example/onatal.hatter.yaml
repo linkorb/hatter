@@ -1,0 +1,27 @@
+tables:
+  wiki:
+    columns:
+      id:
+        generator: autoIncrement
+      r_uuid:
+        generator: uuid.v4
+    rows:
+      first-wiki:
+        code: first-wiki
+        title: First Wiki
+        description: this is the first wiki
+
+  wikipage:
+    columns:
+      id:
+        generator: autoIncrement
+      r_uuid:
+        generator: uuid.v4
+    rows:
+      first-wiki-page:
+        code: first-wiki-page
+        title: First Wiki Page
+        body: |
+          This is the first wiki page.
+          It's awesome
+        wikiuuid: "@wiki.first-wiki.r_uuid"

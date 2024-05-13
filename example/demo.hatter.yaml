@@ -1,0 +1,34 @@
+includes:
+  - include.hatter.yaml
+
+tables:
+  user:
+    columns:
+      id:
+        generator: autoIncrement
+    rows:
+      alice:
+        firstname: Alice
+        lastname: "{{ faker.lastName() }}"
+        age: "{{ faker.numberBetween(18, 60) }}"
+      bob:
+        firstname: Bob
+        lastname: <lastName()>
+        age: "{{ hatter.getTable('user').getRow('alice').getValue('age') }}"
+  post:
+    columns:
+      uuid:
+        generator: xuid
+    rows:
+      hello-world:
+        title: Hello, World!
+        body: |
+          This is a demo post.
+          It's a great day!
+        ownerId: "@user.alice.id"
+      good-news:
+        title: Good News!
+        body: |
+          This is another post.
+          It's a great day!
+        ownerId: "@user.bob.id"

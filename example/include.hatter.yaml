@@ -1,0 +1,11 @@
+# this file is included by demo.hatter.yaml
+
+tables:
+  post:
+    rows:
+      third-post:
+        title: Third Post
+        body: |
+          This is the third post.
+          It's a great day!
+        ownerId: "@user.alice.id"
