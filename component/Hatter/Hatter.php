@@ -161,10 +161,16 @@ class Hatter implements ArrayAccess
                 }
                 $sql = rtrim($sql, ', ') . ') VALUES (';
                 foreach ($table->getColumns() as $column) {
-                    $sql .= $pdo->quote($row->getValue($column->getName())) . ', ';
+                    $value = $row->getValue($column->getName());
+                    if (is_null($value)) {
+                        $sql .= 'NULL';
+                    } else {
+                        $sql .= $pdo->quote($value);
+                    }
+                    $sql .= ', ';
                 }
                 $sql = rtrim($sql, ', ') . ');' . PHP_EOL;
-                // echo $sql . PHP_EOL;
+                echo $sql . PHP_EOL;
 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute();
