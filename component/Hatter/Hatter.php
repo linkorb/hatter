@@ -32,9 +32,8 @@ class Hatter implements ArrayAccess
         $faker = FakerFactory::create();
         $faker->seed(null);
 
+        // auto detect columns from rows
         foreach ($this->tables as $table) {
-
-            // auto detect columns from rows
             foreach ($table->getRows() as $row) {
                 foreach ($row->getValues() as $columnName => $value) {
                     if (!$table->hasColumn($columnName)) {
@@ -43,18 +42,24 @@ class Hatter implements ArrayAccess
                     }
                 }
             }
+        }
 
-            // apply generated column values
+        // apply generated column values
+        foreach ($this->tables as $table) {
             foreach ($table->getRows() as $row) {
-                foreach ($table->getColumns() as $column) {
+                foreach (array_reverse($table->getColumns()) as $column) {
                     if ($column->getGenerator()) {
-                        $value = $column->getGeneratedValue();
-                        $row->setValue($column->getName(), $value, true);
+                        if (!$row->getValue($column->getName())) {
+                            $value = $column->getGeneratedValue();
+                            $row->setValue($column->getName(), $value, true);
+                        }
                     }
                 }
             }
+        }
 
-            // apply expressions and references
+        // apply expressions and references
+        foreach ($this->tables as $table) {
             foreach ($table->getRows() as $row) {
                 foreach ($row->getValues() as $key => $value) {
                     if (preg_match('/\{\{(.*)\}\}/', $value, $matches)) {
