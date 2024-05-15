@@ -16,11 +16,20 @@ class HatterFactory
          $config = Yaml::parseFile($filename);
 
          foreach ($config['includes'] ?? [] as $includeFilename) {
-             $includeFilename = dirname($filename) . '/' . $includeFilename;
-             $includeYaml = file_get_contents($includeFilename);
-             $includeConfig = Yaml::parse($includeYaml);
-             $config = array_merge_recursive($config, $includeConfig);
+            $includeFilename = dirname($filename) . '/' . $includeFilename;
+            // echo $includeFilename . PHP_EOL;
+            $includeFilenames = glob($includeFilename);
+            if (count($includeFilenames) == 0) {
+                throw new \InvalidArgumentException('Include file not found: ' . $includeFilename);
+            }
+            foreach ($includeFilenames as $includeFilename) {
+                $includeYaml = file_get_contents($includeFilename);
+                // echo ' - ' . $includeFilename . PHP_EOL;
+                $includeConfig = Yaml::parse($includeYaml);
+                $config = array_merge_recursive($config, $includeConfig);
+            }
          }
+        //  exit();
  
          $hatter = Hatter::fromArray($config);
          return $hatter;
