@@ -4,7 +4,7 @@ A database fixture tool inspired by [Alice](https://github.com/nelmio/alice) and
 
 ## Usage
 
-Hatter allows you to write human-friendly YAML files containing the data you want to load into your database for testing and initialization. Have a look at the [examples/ directory](examples/) to get a feel for how to write your own database fixtures.
+Hatter allows you to write human-friendly YAML files containing the data you want to load into your database for testing and initialization. Have a look at the [example/](example/) directory to get a feel for how to write your own database fixtures.
 
 ## Hatter vs Alice
 
@@ -38,7 +38,7 @@ HATTER_DSN=mysql://username:password@somehost/mydatabase
 
 ## Writing database fixtures as YAML files
 
-Have a look at the `example/` directory for some example hatter files.
+Have a look at the [example/](example/) directory for some example hatter files.
 
 The general outline of a hatter file:
 
@@ -87,6 +87,30 @@ Loading this file through hatter will:
 * Use the [Faker PHP](https://fakerphp.github.io/) library to generate random values
 * Use the Symfony Expression language to generate complex values based on referenced fields in other columns, custom functions and many more
 * Support generated fields with generators `autoIncrement`, `uuid.v4` and `xuid`
+
+## FAQ and Best Practices
+
+##### Q: Where do I store my hatter files?
+
+A: It's recommended to store your `.hatter.yaml` files in a `hatter/` sub-directory in your application's repository. This way your application, database schema and database fixtures can evolve together. 
+For special cases, i.e. dedicated testing projects, it could make sense to store your hatter files in an external dedicated repository for that project and app combination. This also makes sense if you're writing hatter files for a third-party application.
+
+##### Q: How do I name a dedicated Hatter repository?
+
+It's name your repository like `{{ project_name }}-hatter`, i.e. `wordpress-hatter`.
+
+##### Q: What database backends are supported?
+
+Database connection strings (DSN) are parsed using the [linkorb/connector](https://github.com/linkorb/connector) library. This library currently supports mysql, pgsql, sqlite and sqlsrv drivers.
+
+##### Q: How do I deal with UUIDs (or XUIDs)
+
+Hatter supports auto-generating UUIDs and XUIDs for your database rows. But they will always be random, and different on every run of Hatter. This may not always be desirable.
+
+Some applications / database schemas heavily rely on UUID or similar identifiers. Having these change between Hatter runs can complicate testing.. i.e. it's helpful to have stable IDs to keep testing and itterating on business objects. For this reason it's recommended to generate those IDs externally i.e. using [uuidgenerator.net](https://www.uuidgenerator.net/version4), and paste these values into your YAML file. This way you are sure that the data is restored in the same way on each Hatter run.
+
+To better recognize UUIDs in your test projects, you can consider setting up a format for your UUIDs that aid humans (developers, testers) in recognizing them. For example, your app can use `xxxxxxxx-xxxx-xxxx-xxxx-` as the prefix of all your UUIDs (assuming the underlying database column accepts regular strings). This way you recognize that these are test UUIDs. You can further scope your UUIDs by including test-case names or user names into your UUIDs so you can quickly recognize where given records belong to.
+
 
 ## License
 
