@@ -1,5 +1,7 @@
 # Hatter
 
+<img src="https://i.pinimg.com/originals/cd/d5/55/cdd5551862180e0a321dd78b69a08f35.gif" style="width: 100%" />
+
 A database fixture tool inspired by [Alice](https://github.com/nelmio/alice) and [Haigha](https://github.com/linkorb/haigha), but better suited for non-symfony or third-party application written in other programming languages.
 
 ## Usage
