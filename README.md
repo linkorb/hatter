@@ -97,15 +97,15 @@ For special cases, i.e. dedicated testing projects, it could make sense to store
 
 ##### Q: How do I name a dedicated Hatter repository?
 
-It's name your repository like `{{ project_name }}-hatter`, i.e. `wordpress-hatter`.
+A: It's recommended to name your repository like `{{ project_name }}-hatter`, i.e. `wordpress-hatter`. The `project_name` generally matches the repository name of the application. For dedicated testing projects a dedicated project name could make more sense (i.e. `wordpress-customer-x-hatter` for a dedicated customer project).
 
 ##### Q: What database backends are supported?
 
-Database connection strings (DSN) are parsed using the [linkorb/connector](https://github.com/linkorb/connector) library. This library currently supports mysql, pgsql, sqlite and sqlsrv drivers.
+A: Database connection strings (DSN) are parsed using the [linkorb/connector](https://github.com/linkorb/connector) library. This library currently supports mysql, pgsql, sqlite and sqlsrv drivers.
 
 ##### Q: How do I deal with UUIDs (or XUIDs)
 
-Hatter supports auto-generating UUIDs and XUIDs for your database rows. But they will always be random, and different on every run of Hatter. This may not always be desirable.
+A: Hatter supports auto-generating UUIDs and XUIDs for your database rows. But they will always be random, and different on every run of Hatter. This may not always be desirable.
 
 Some applications / database schemas heavily rely on UUID or similar identifiers. Having these change between Hatter runs can complicate testing.. i.e. it's helpful to have stable IDs to keep testing and itterating on business objects. For this reason it's recommended to generate those IDs externally i.e. using [uuidgenerator.net](https://www.uuidgenerator.net/version4), and paste these values into your YAML file. This way you are sure that the data is restored in the same way on each Hatter run.
 
