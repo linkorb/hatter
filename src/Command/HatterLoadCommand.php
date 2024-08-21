@@ -27,14 +27,15 @@ class HatterLoadCommand extends Command
     {
         $this
             ->setDescription('Reads and outputs a YAML file')
-            ->addArgument('filename', InputArgument::REQUIRED, 'The YAML file to load');
+            ->addArgument('filenames', InputArgument::IS_ARRAY, 'The YAML file(s) to load');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $filename = $input->getArgument('filename');
+        $filenames = $input->getArgument('filenames');
+        // print_r($filenames);exit();
 
-        $hatter = HatterFactory::fromFilename($filename);
+        $hatter = HatterFactory::fromFilenames($filenames);
         
         $connector = new Connector();
         $config = $connector->getConfig($this->dsn);
