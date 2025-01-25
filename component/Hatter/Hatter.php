@@ -3,11 +3,11 @@
 namespace LinkORB\Component\Hatter;
 
 use ArrayAccess;
-use LinkORB\Component\Hatter\Model\Table;
-use LinkORB\Component\Hatter\Model\Column;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Faker\Factory as FakerFactory;
+use LinkORB\Component\Hatter\Model\Column;
+use LinkORB\Component\Hatter\Model\Table;
 use PDO;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class Hatter implements ArrayAccess
 {
@@ -148,7 +148,9 @@ class Hatter implements ArrayAccess
     {
         foreach ($this->getTables() as $table) {
             // truncate table first
-            $sql = 'TRUNCATE ' . $table->getName() . ';';
+            $sql = 'SET FOREIGN_KEY_CHECKS = 0; ';
+            $sql .= 'TRUNCATE '.$table->getName().'; ';
+            $sql .= 'SET FOREIGN_KEY_CHECKS = 1; ';           
             $stmt = $pdo->prepare($sql);
             $stmt->execute();
             // print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
