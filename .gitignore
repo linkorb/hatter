@@ -8,3 +8,5 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+/docker-compose.dev.yaml
+/Dockerfile
