@@ -35,6 +35,11 @@ class HatterLoadCommand extends Command
         $filenames = $input->getArgument('filenames');
         // print_r($filenames);exit();
 
+        if (0 === count($filenames)) {
+            $io->error('No filenames specified');
+            return Command::FAILURE;
+        }
+
         $hatter = HatterFactory::fromFilenames($filenames);
 
         if (empty($this->dsn)) {
