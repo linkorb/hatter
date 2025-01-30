@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+use LinkORB\Hatter\Command\HatterLoadCommand;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Dotenv\Dotenv;
+
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
+$dotenv = new Dotenv();
+$dotenv->loadEnv(getcwd().'/.env');
+
+$application = new Application('hatter');
+$application->add(new HatterLoadCommand($_ENV['HATTER_DSN']));
+$application->run();
