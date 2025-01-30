@@ -17,8 +17,12 @@ foreach ($autoloadFiles as $autoloadFile) {
     }
 }
 
-$dotenv = new Dotenv();
-$dotenv->loadEnv(getcwd().'/.env');
+$env_file = getcwd().'/.env';
+
+if (file_exists($env_file)) {
+    $dotenv = new Dotenv();
+    $dotenv->loadEnv(getcwd().'/.env');
+}
 
 $application = new Application('hatter');
 $application->add(new HatterLoadCommand($_ENV['HATTER_DSN'] ?? ''));
