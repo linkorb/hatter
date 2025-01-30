@@ -1,4 +1,5 @@
 {
+    "name": "linkorb/hatter",
     "type": "project",
     "bin": ["bin/hatter"],
     "license": "MIT",
