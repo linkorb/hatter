@@ -24,7 +24,7 @@ class HatterLoadCommand extends Command
     {
         $this
             ->setName('load')
-            ->setDescription('Reads and outputs a YAML file')
+            ->setDescription('Reads Hatter specific YAML files and populates database')
             ->addArgument('filenames', InputArgument::IS_ARRAY, 'The YAML file(s) to load');
     }
 
