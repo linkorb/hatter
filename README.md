@@ -4,9 +4,9 @@
 
 A database fixture tool inspired by [Alice](https://github.com/nelmio/alice) and [Haigha](https://github.com/linkorb/haigha), but better suited for non-symfony or third-party application written in other programming languages.
 
-## Usage
+**Hatter allows you to write human-friendly YAML files containing the data you want to load into your database for testing and initialization.**
 
-Hatter allows you to write human-friendly YAML files containing the data you want to load into your database for testing and initialization. Have a look at the [example/](example/) directory to get a feel for how to write your own database fixtures.
+Have a look at the [example/](example/) directory to get a feel for how to write your own database fixtures.
 
 ## Hatter vs Alice
 
@@ -17,25 +17,32 @@ Hatter on the other hand writes to databases directly. This way you can use it f
 
 Alice is more feature rich, but Hatter supports most common use-cases and features, making it a great alternative.
 
-## Usage
+## Quick start
 
+**Installation**
+
+```shell
+composer require --dev linkorb/hatter
 ```
-git clone https://github.com/linkorb/hatter.git
-cd hatter
-composer install
-bin/console hatter:load example/demo.hatter.yaml
-```
 
-## Database connection
+**Database connection**
 
-Hatter reads the connection string from the environment variable `HATTER_DSN`. 
-Instead of setting this environment variable, you can also create a `.env.local` file, which hatter will load during startup.
+Hatter reads the connection string from the environment variable `HATTER_DSN`. symfony/dotenv is used to load the 
+environment variables in standalone mode, which means all the `.env*` precedence rules apply.
 
-Example:
-
-```ini
+```shell
 # .env.local
 HATTER_DSN=mysql://username:password@somehost/mydatabase
+```
+```shell
+# or within symfony when doctrine is used
+HATTER_DSN=$DATABASE_URL
+```
+
+**Running hatter**
+
+```shell
+./vendor/bin/hatter load /path/to/hatter/fixtures
 ```
 
 ## Writing database fixtures as YAML files
