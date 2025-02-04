@@ -1,24 +1,21 @@
 <?php
 
-namespace App\Command;
+namespace LinkORB\Hatter\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use LinkORB\Component\Hatter\Factory\HatterFactory;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Yaml\Yaml;
 use Connector\Connector;
 
 class HatterLoadCommand extends Command
 {
-    protected static $defaultName = 'hatter:load';
-
     // get environment variable `dsn` during construction
-    public function __construct(ParameterBagInterface $params)
+    public function __construct(private readonly string $dsn)
     {
-        $this->dsn = $params->get('dsn');
         parent::__construct();
     }
 
@@ -26,21 +23,35 @@ class HatterLoadCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setDescription('Reads and outputs a YAML file')
+            ->setName('load')
+            ->setDescription('Reads Hatter specific YAML files and populates database')
             ->addArgument('filenames', InputArgument::IS_ARRAY, 'The YAML file(s) to load');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
+
         $filenames = $input->getArgument('filenames');
         // print_r($filenames);exit();
 
+        if (0 === count($filenames)) {
+            $io->error('No filenames specified');
+            return Command::FAILURE;
+        }
+
         $hatter = HatterFactory::fromFilenames($filenames);
-        
+
+        if (empty($this->dsn)) {
+            $io->error('Empty HATTER_DSN environment variable');
+            return Command::FAILURE;
+        }
+
         $connector = new Connector();
         $config = $connector->getConfig($this->dsn);
         if (!$connector->exists($config)) {
-            throw new \InvalidArgumentException('Database does not exist: ' . $config['dbname']);
+            $io->error('Database does not exist: ' . $config->getName());
+            return Command::FAILURE;
         }
         $pdo = $connector->getPdo($config);
 

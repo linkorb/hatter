@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+use LinkORB\Hatter\Command\HatterLoadCommand;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Dotenv\Dotenv;
+
+$autoloadFiles = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../../../autoload_runtime.php'
+];
+foreach ($autoloadFiles as $autoloadFile) {
+    if (file_exists($autoloadFile)) {
+        require_once $autoloadFile;
+        break;
+    }
+}
+
+$env_file = getcwd().'/.env';
+
+if (file_exists($env_file)) {
+    $dotenv = new Dotenv();
+    $dotenv->loadEnv(getcwd().'/.env');
+}
+
+$application = new Application('hatter');
+$application->add(new HatterLoadCommand($_ENV['HATTER_DSN'] ?? ''));
+$application->run();
