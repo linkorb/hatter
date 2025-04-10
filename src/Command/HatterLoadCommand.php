@@ -5,6 +5,7 @@ namespace LinkORB\Hatter\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use LinkORB\Component\Hatter\Factory\HatterFactory;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -25,22 +26,19 @@ class HatterLoadCommand extends Command
         $this
             ->setName('load')
             ->setDescription('Reads Hatter specific YAML files and populates database')
-            ->addArgument('filenames', InputArgument::IS_ARRAY, 'The YAML file(s) to load');
+            ->addArgument('filenames', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'The YAML file(s) to load')
+            ->addOption('skip-foreign-key-checks',
+                null,
+                InputOption::VALUE_NONE,
+                "Skip foreign key checks when inserting data into a MySQL compatible database"
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $filenames = $input->getArgument('filenames');
-        // print_r($filenames);exit();
-
-        if (0 === count($filenames)) {
-            $io->error('No filenames specified');
-            return Command::FAILURE;
-        }
-
-        $hatter = HatterFactory::fromFilenames($filenames);
+        $hatter = HatterFactory::fromFilenames($input->getArgument('filenames'));
 
         if (empty($this->dsn)) {
             $io->error('Empty HATTER_DSN environment variable');
@@ -55,7 +53,7 @@ class HatterLoadCommand extends Command
         }
         $pdo = $connector->getPdo($config);
 
-        $hatter->write($pdo);
+        $hatter->write($pdo, $input->getOption('skip-foreign-key-checks'));
         $config = $hatter->serialize();
         $output->write(Yaml::dump($config, 10, 2));
         return Command::SUCCESS;

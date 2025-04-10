@@ -11,7 +11,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class Hatter implements ArrayAccess
 {
-    private $tables = array();
+    private array $tables = [];
 
     public static function fromArray(array $config): self
     {
@@ -30,7 +30,7 @@ class Hatter implements ArrayAccess
         $expressionLanguage = new ExpressionLanguage();
 
         $faker = FakerFactory::create();
-        $faker->seed(null);
+        $faker->seed();
 
         // auto detect columns from rows
         foreach ($this->tables as $table) {
@@ -79,7 +79,7 @@ class Hatter implements ArrayAccess
                         $value = $refRow->getValue($matches[3]);
                         $row->setValue($key, $value);
                     }
-                
+
                 }
             }
         }
@@ -144,19 +144,20 @@ class Hatter implements ArrayAccess
         return $config;
     }
 
-    public function write(PDO $pdo): void
+    public function write(PDO $pdo, bool $skip_foreign_key_checks = false): void
     {
+        if ($skip_foreign_key_checks) {
+            $pdo->prepare('SET FOREIGN_KEY_CHECKS = 0')->execute();
+        }
         foreach ($this->getTables() as $table) {
             // truncate table first
-            $sql = 'SET FOREIGN_KEY_CHECKS = 0; ';
-            $sql .= 'TRUNCATE '.$table->getName().'; ';
-            $sql .= 'SET FOREIGN_KEY_CHECKS = 1; ';           
+            $sql = 'TRUNCATE '.$table->getName().'; ';
             $stmt = $pdo->prepare($sql);
             $stmt->execute();
             // print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
 
             // build insert statements and execute
-            foreach ($table->getRows() as $row) {  
+            foreach ($table->getRows() as $row) {
                 $sql = 'INSERT INTO ' . $table->getName() . ' (';
                 foreach ($table->getColumns() as $column) {
                     $sql .= $column->getName() . ', ';
@@ -176,10 +177,12 @@ class Hatter implements ArrayAccess
 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute();
-    
+
             }
         }
 
-
+        if ($skip_foreign_key_checks) {
+            $pdo->prepare('SET FOREIGN_KEY_CHECKS = 1')->execute();
+        }
     }
 }
