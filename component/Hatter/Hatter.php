@@ -146,43 +146,71 @@ class Hatter implements ArrayAccess
 
     public function write(PDO $pdo, bool $skip_foreign_key_checks = false): void
     {
-        if ($skip_foreign_key_checks) {
-            $pdo->prepare('SET FOREIGN_KEY_CHECKS = 0')->execute();
+        $driver = strtolower($pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+    
+        switch ($driver) {
+            case 'sqlite':
+                if ($skip_foreign_key_checks) {
+                    $pdo->exec('PRAGMA foreign_keys = OFF');
+                }
+                break;
+            case 'mysql':
+            case 'mariadb':
+                if ($skip_foreign_key_checks) {
+                    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+                }
+                break;
+            default:
+                throw new \RuntimeException("Unsupported PDO driver: $driver");
         }
+    
         foreach ($this->getTables() as $table) {
-            // truncate table first
-            $sql = 'TRUNCATE '.$table->getName().'; ';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute();
-            // print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
-
-            // build insert statements and execute
+            $tableName = $table->getName();
+    
+            // defensively ensure table name is safe
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $tableName)) {
+                throw new \RuntimeException("Unsafe table name: $tableName");
+            }
+    
+            $clearSql = match ($driver) {
+                'sqlite' => "DELETE FROM $tableName;",
+                default => "TRUNCATE $tableName;"
+            };
+    
+            $pdo->exec($clearSql);
+    
             foreach ($table->getRows() as $row) {
-                $sql = 'INSERT INTO ' . $table->getName() . ' (';
+                $sql = 'INSERT INTO ' . $tableName . ' (';
                 foreach ($table->getColumns() as $column) {
                     $sql .= $column->getName() . ', ';
                 }
                 $sql = rtrim($sql, ', ') . ') VALUES (';
                 foreach ($table->getColumns() as $column) {
                     $value = $row->getValue($column->getName());
-                    if (is_null($value)) {
-                        $sql .= 'NULL';
-                    } else {
-                        $sql .= $pdo->quote($value);
-                    }
+                    $sql .= is_null($value) ? 'NULL' : $pdo->quote($value);
                     $sql .= ', ';
                 }
                 $sql = rtrim($sql, ', ') . ');' . PHP_EOL;
+    
                 echo $sql . PHP_EOL;
-
+    
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute();
-
             }
         }
-
-        if ($skip_foreign_key_checks) {
-            $pdo->prepare('SET FOREIGN_KEY_CHECKS = 1')->execute();
+    
+        switch ($driver) {
+            case 'sqlite':
+                if ($skip_foreign_key_checks) {
+                    $pdo->exec('PRAGMA foreign_keys = ON');
+                }
+                break;
+            case 'mysql':
+            case 'mariadb':
+                if ($skip_foreign_key_checks) {
+                    $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
+                }
+                break;
         }
-    }
+    }    
 }
