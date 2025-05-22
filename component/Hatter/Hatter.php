@@ -3,6 +3,7 @@
 namespace LinkORB\Component\Hatter;
 
 use ArrayAccess;
+use Exception;
 use Faker\Factory as FakerFactory;
 use LinkORB\Component\Hatter\Model\Column;
 use LinkORB\Component\Hatter\Model\Table;
@@ -12,6 +13,10 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 class Hatter implements ArrayAccess
 {
     private array $tables = [];
+    public array $summary = [
+        'insert-count' => 0,
+        'missing-tables' => []
+    ];
 
     public static function fromArray(array $config): self
     {
@@ -85,7 +90,7 @@ class Hatter implements ArrayAccess
         }
     }
 
-    public function addTable(Table $table)
+    public function addTable(Table $table): void
     {
         $this->tables[$table->getName()] = $table;
     }
@@ -105,22 +110,31 @@ class Hatter implements ArrayAccess
         return $offset == 'tables';
     }
 
-    public function offsetGet($offset): mixed
+    /**
+     * @throws Exception
+     */
+    public function offsetGet($offset): array
     {
         if ($offset == 'tables') {
             return $this->getTables();
         }
-        throw new \Exception('No such hatter property: ' . $offset);
+        throw new Exception('No such hatter property: ' . $offset);
     }
 
+    /**
+     * @throws Exception
+     */
     public function offsetSet($offset, $value): void
     {
-        throw new \Exception('Not implemented');
+        throw new Exception('Not implemented');
     }
 
+    /**
+     * @throws Exception
+     */
     public function offsetUnset($offset): void
     {
-        throw new \Exception('Not implemented');
+        throw new Exception('Not implemented');
     }
 
     public function serialize(): array
@@ -144,12 +158,31 @@ class Hatter implements ArrayAccess
         return $config;
     }
 
-    public function write(PDO $pdo, bool $skip_foreign_key_checks = false): void
+    public function write(
+        PDO $pdo,
+        string $database_name,
+        bool $skip_foreign_key_checks = false,
+        bool $ignore_missing_tables = false,
+        bool $summarize = false,
+    ): void
     {
         if ($skip_foreign_key_checks) {
             $pdo->prepare('SET FOREIGN_KEY_CHECKS = 0')->execute();
         }
+        $check_table = $pdo->prepare(
+            "SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = ? AND table_name = ?"
+        );
         foreach ($this->getTables() as $table) {
+            if ($ignore_missing_tables) {
+                $check_table->execute([$database_name, $table->getName()]);
+                $result = $check_table->fetchColumn();
+                if ($result === 0) {
+                    $this->summary['missing-tables'][] = $table->getName();
+                    continue;
+                }
+            }
             // truncate table first
             $sql = 'TRUNCATE '.$table->getName().'; ';
             $stmt = $pdo->prepare($sql);
@@ -173,11 +206,15 @@ class Hatter implements ArrayAccess
                     $sql .= ', ';
                 }
                 $sql = rtrim($sql, ', ') . ');' . PHP_EOL;
-                echo $sql . PHP_EOL;
+
+                if ($summarize === false) {
+                    echo $sql . PHP_EOL;
+                }
 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute();
 
+                $this->summary['insert-count']++;
             }
         }
 

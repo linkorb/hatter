@@ -31,12 +31,24 @@ class HatterLoadCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 "Skip foreign key checks when inserting data into a MySQL compatible database"
-            );
+            )
+            ->addOption('ignore-missing-tables',
+                null,
+                InputOption::VALUE_NONE,
+                "Ignore missing tables when inserting data into a MySQL compatible database"
+            )
+            ->addOption('summary',
+                null,
+                InputOption::VALUE_NONE,
+                "Show a short summary instead of detailed execution steps"
+            )
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $summarize = $input->getOption('summary');
 
         $hatter = HatterFactory::fromFilenames($input->getArgument('filenames'));
 
@@ -53,9 +65,19 @@ class HatterLoadCommand extends Command
         }
         $pdo = $connector->getPdo($config);
 
-        $hatter->write($pdo, $input->getOption('skip-foreign-key-checks'));
-        $config = $hatter->serialize();
-        $output->write(Yaml::dump($config, 10, 2));
+        $hatter->write(
+            $pdo,
+            $config->getName(),
+            $input->getOption('skip-foreign-key-checks'),
+            $input->getOption('ignore-missing-tables'),
+            $summarize,
+        );
+
+        $output->write(Yaml::dump(
+            $summarize ? $hatter->summary : $hatter->serialize(),
+            10,
+            2
+        ));
         return Command::SUCCESS;
     }
 }
