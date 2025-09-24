@@ -67,7 +67,7 @@ class Hatter implements ArrayAccess
         foreach ($this->tables as $table) {
             foreach ($table->getRows() as $row) {
                 foreach ($row->getValues() as $key => $value) {
-                    if (preg_match('/\{\{(.*)\}\}/', $value, $matches)) {
+                    if ($value !== null && preg_match('/\{\{(.*)\}\}/', $value, $matches)) {
                         $expression = trim($matches[1]);
                         $values = [
                             'faker' => $faker,
@@ -78,7 +78,7 @@ class Hatter implements ArrayAccess
                     }
 
                     // match values like `@user.alice.id` capturing `user`, `alice` and `id`
-                    if (preg_match('/@([a-z0-9_-]+)\.([a-z0-9_-]+)\.([a-z0-9_-]+)/', $value, $matches)) {
+                    if ($value !== null && preg_match('/@([a-z0-9_-]+)\.([a-z0-9_-]+)\.([a-z0-9_-]+)/', $value, $matches)) {
                         $refTable = $this->getTable($matches[1]);
                         $refRow = $refTable->getRow($matches[2]);
                         $value = $refRow->getValue($matches[3]);
