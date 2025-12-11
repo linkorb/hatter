@@ -67,6 +67,13 @@ class Hatter implements ArrayAccess
         foreach ($this->tables as $table) {
             foreach ($table->getRows() as $row) {
                 foreach ($row->getValues() as $key => $value) {
+                    // Handle escaped expressions: \{{name}} → {{name}}
+                    if ($value !== null && preg_match('/\\\\\{\{/', (string)$value)) {
+                        $value = preg_replace('/\\\\\{\{(.*?)\}\}/', '{{$1}}', (string)$value);
+                        $row->setValue($key, $value);
+                        continue;
+                    }
+
                     if ($value !== null && preg_match('/\{\{(.*)\}\}/', $value, $matches)) {
                         $expression = trim($matches[1]);
                         $values = [
