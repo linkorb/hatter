@@ -25,5 +25,8 @@
             "LinkORB\\Hatter\\": "src/",
             "LinkORB\\Component\\": "component/"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
     }
 }
